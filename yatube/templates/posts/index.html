@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+    {% block title %}
+    <title>Последние обновления на сайте.</title>
+    {% endblock %}
+    {% block content %}
+    <h1>Последние обновления на сайте.</h1>
+    {% for post in page_obj %}
+
+    <div>
+    <ul>
+        <li>Автор: {{ post.author.get_full_name }}</li>
+        <li>Дата публикации: {{ post.pub_date|date:"d E Y"}}</li>
+    </ul>
+
+{% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+    <img class="card-img my-2" src="{{ im.url }}">
+  {% endthumbnail %}
+    <p>{{ post.text }}</p>
+    {% if post.group %}
+  <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a><br>
+        <a href="{% url 'posts:post_detail' post.id %}">подробная информация </a>
+   {% endif %}
+  {% if not forloop.last %}<hr>{% endif %}
+        {% if user.is_authenticated %}
+  <div class="row my-3">
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a
+          class="nav-link {% if index %}active{% endif %}"
+          href="{% url 'posts:main_posts' %}"
+        >
+          Все авторы
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+           class="nav-link {% if follow %}active{% endif %}"
+           href="{% url 'posts:follow_index' %}"
+        >
+          Избранные авторы
+        </a>
+      </li>
+    </ul>
+  </div>
+{% endif %}
+  </div>
+  {% endfor %}
+  {% include 'includes/paginator.html' %}
+  {% endblock %}
