@@ -1,9 +1,11 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+
+from django.db import models
 
 User = get_user_model()
 
 SYMBOLS_LIMIT = 15
+TEXT_LIMIT = 50
 
 
 class Group(models.Model):
@@ -57,7 +59,7 @@ class Comment(models.Model):
         ordering = ['created']
 
     def __str__(self):
-        return self.text[50]
+        return self.text[TEXT_LIMIT]
 
 
 class Follow(models.Model):

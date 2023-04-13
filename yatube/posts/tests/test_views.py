@@ -394,3 +394,29 @@ class FollowViewTests(TestCase):
             reverse('posts:follow_index'))
         post_follow = response.context['page_obj'][0]
         self.assertEqual(post_follow, self.post)
+
+    def test_user_can_unfollow_other_user(self):
+        followers_count = Follow.objects.count()
+        self.authorized_client.post(
+            reverse('posts:profile_follow', args=[self.user.username]))
+        self.assertEqual(Follow.objects.count(), followers_count + 1)
+        last_follow = Follow.objects.latest('id')
+        self.assertEqual(last_follow.author, self.user)
+        self.assertEqual(last_follow.user, self.user_2)
+        self.authorized_client.post(
+            reverse('posts:profile_unfollow', args=[self.user.username]))
+        self.assertEqual(Follow.objects.count(), followers_count)
+        self.assertFalse(Follow.objects.filter(
+            author=self.user, user=self.user_2).exists())
+
+    def test_following_for_guest_not_acceptable(self):
+        response = self.guest_client.get(
+            reverse('posts:profile_follow', args={self.user}))
+        self.assertRedirects(response,
+                             '/auth/login/?next=/profile/author/follow/')
+
+    def test_unfollowing_for_guest_not_acceptable(self):
+        response = self.guest_client.post(
+            reverse('posts:profile_unfollow', args=[self.user.username]))
+        self.assertRedirects(response,
+                             '/auth/login/?next=/profile/author/unfollow/')

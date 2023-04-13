@@ -1,10 +1,13 @@
-from django.test import Client, TestCase, override_settings
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.urls import reverse
-from ..models import Group, Post, User
-from django.conf import settings
 import tempfile
 import shutil
+
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
+from django.test import Client, TestCase, override_settings
+
+from ..models import Group, Post, User
+
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -184,3 +187,17 @@ class PostImageTests(TestCase):
             'posts:profile',
             kwargs={'username': self.user}))
         self.assertTrue(Post.objects.filter(text='Test top6').exists())
+
+    def test_upload_non_image_file(self):
+        text = 'Test post555'
+        file = SimpleUploadedFile(
+            'test.txt',
+            b'1234',
+            content_type='text/plain'
+        )
+        response = self.authorized_client.post(reverse('posts:post_create'), {
+            'text': text,
+            'image': file
+        }, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Post.objects.filter(text=text).exists())
